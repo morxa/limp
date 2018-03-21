@@ -1,0 +1,41 @@
+#! /bin/bash
+#
+# limp
+# Copyright (C) 2017 Till Hofmann <till.hofmann@posteo.de>
+#
+# Distributed under terms of the MIT license.
+#
+
+print_usage () {
+  echo "Usage:"
+  echo "  $0 <latex_file>"
+}
+
+ARGS_NEEDED=1
+if [ $# -ne ${ARGS_NEEDED} ] ; then
+  echo "Wrong number of arguments, expected ${ARGS_NEEDED}, got $#."
+  print_usage
+  exit 1
+fi
+
+while : ; do
+  pdflatex_output=$(pdflatex -interaction=nonstopmode $1)
+  if [ $? -eq 0 ] ; then
+    exit $?
+  fi
+  missing_package_line=$(echo $pdflatex_output | grep "File .* not found")
+  if [ $? -ne 0 ] ; then
+    echo $pdflatex_output
+    echo; echo; echo "pdflatex failed, but no missing file"
+    exit $?
+  fi
+  package_regex="File\s+\`(\S+)'\s+not found"
+  if [[ $missing_package_line =~ $package_regex ]] ; then
+    latex_file=${BASH_REMATCH[1]}
+    echo "Installing $latex_file..."
+    sudo dnf install "*/$latex_file" || exit $?
+  else
+    echo "Line $missing_package_line did not match regex $package_regex"
+    exit 1
+  fi
+done
