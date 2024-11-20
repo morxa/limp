@@ -19,7 +19,7 @@ if [ $# -ne ${ARGS_NEEDED} ] ; then
 fi
 
 while : ; do
-  pdflatex_output=$(pdflatex -interaction=nonstopmode $1)
+  pdflatex_output=$(latexmk -g -interaction=nonstopmode $1)
   if [ $? -eq 0 ] ; then
     exit $?
   fi
